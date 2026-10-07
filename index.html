@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="eu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hurbilketa-erroreak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Diseinua: pantaila bakarra (1000x600 koordenatu-espazioa, erantzuleki eskalatua), azpian azpitituluak eta denbora-kontrolak. */
+:root{
+  --bg:#F3F5F8; --panel:#FFFFFF; --ink:#18212D; --muted:#5A6677; --line:#D6DCE5;
+  --real:#1F5FBF; --approx:#B85C00; --abs:#7B3FB0; --rel:#0B7A72;
+  --ok:#2E7D32; --bad:#B3261E; --onc:#FFFFFF;
+  --ui:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --math:'Source Serif 4','Times New Roman',serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E131A; --panel:#161D27; --ink:#E8EDF4; --muted:#9BA7B8; --line:#2A3543;
+    --real:#79ADFF; --approx:#F2A65E; --abs:#C9A2F2; --rel:#55D3C8;
+    --ok:#7BD389; --bad:#FF8F86; --onc:#0E131A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E131A; --panel:#161D27; --ink:#E8EDF4; --muted:#9BA7B8; --line:#2A3543;
+  --real:#79ADFF; --approx:#F2A65E; --abs:#C9A2F2; --rel:#55D3C8;
+  --ok:#7BD389; --bad:#FF8F86; --onc:#0E131A; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:16px;margin:0;padding-inline:16px;padding-block:20px}
+.app{max-width:1040px;margin-inline:auto;display:grid;gap:12px;min-width:0}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--real);outline-offset:2px}
+
+.wrap{position:relative;width:100%;aspect-ratio:1000/600;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+#st{position:absolute;left:0;top:0;width:1000px;height:600px;transform-origin:0 0}
+#sv{position:absolute;left:0;top:0;width:1000px;height:600px;overflow:visible}
+.ln{stroke:var(--muted);stroke-width:1.6;fill:none;stroke-linecap:round}
+
+/* Elementuak */
+.a{position:absolute;opacity:0;white-space:nowrap;line-height:1.25}
+.ctr{text-align:center}
+.sp{display:inline-block}
+.rect{transform-origin:left center}
+.dot{border-radius:50%;transform-origin:center}
+.bg-real{background:var(--real)} .bg-approx{background:var(--approx)} .bg-abs{background:var(--abs)} .bg-rel{background:var(--rel)} .bg-muted{background:var(--muted)}
+.c-real{color:var(--real)} .c-approx{color:var(--approx)} .c-abs{color:var(--abs)} .c-rel{color:var(--rel)} .c-ok{color:var(--ok)} .c-bad{color:var(--bad)}
+.k-abs{--c:var(--abs)} .k-rel{--c:var(--rel)}
+.ttl{font-weight:700;font-size:26px}
+.big{font-size:60px;font-weight:700}
+.sub{font-size:28px;color:var(--muted)}
+.lab{font-size:17px;letter-spacing:.09em;font-weight:700}
+.axl{font-size:22px;font-weight:700}
+.tk{font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
+.note{font-size:19px;color:var(--muted)}
+.stm{font-size:21px;color:var(--muted);line-height:1.4;white-space:normal}
+.barl{font-size:19px;font-weight:700;color:var(--onc)}
+.rowl{font-size:24px}
+.win{border:2px dashed var(--muted);border-radius:6px;background:transparent}
+.panel{border:1.5px dashed var(--muted);border-radius:10px}
+.band{background:color-mix(in srgb,var(--ok) 16%,transparent);border:2px dashed var(--ok);border-radius:8px}
+.ring{border-radius:50%;border:4px solid var(--ok);transform-origin:center}
+.ring.bad{border-color:var(--bad)}
+.concl{font-size:24px;line-height:1.45;white-space:normal;border:1.5px solid var(--line);border-radius:10px;padding:16px 20px;background:var(--panel)}
+.card2{white-space:normal;border:1.5px solid var(--line);border-radius:12px;padding:14px 22px;background:var(--panel)}
+.card2 .lab{margin-bottom:4px}
+.chip{display:inline-flex;gap:.55em;align-items:baseline;padding:.3em .8em;border-radius:8px;font-family:var(--math);font-size:24px;background:color-mix(in srgb,var(--c) 13%,var(--panel));border:1.5px solid color-mix(in srgb,var(--c) 55%,transparent)}
+.chip b{color:var(--c);font-weight:600}
+.chip sub{font-size:.62em;font-family:var(--ui)}
+
+.math{font-family:var(--math);line-height:1.5}
+.math i{font-style:italic}
+.math sub{font-size:.62em;font-style:normal;font-family:var(--ui)}
+.math b{font-weight:600}
+.fz28{font-size:28px}.fz34{font-size:34px}.fz38{font-size:38px}.fz44{font-size:44px}.fz64{font-size:64px;line-height:1.2}
+.abs{display:inline-flex;align-items:center;border-left:.07em solid currentColor;border-right:.07em solid currentColor;padding:.05em .32em;margin:0 .12em}
+.abs.sp{display:inline-flex}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .15em;line-height:1.3}
+.frac .n{border-bottom:.06em solid currentColor;padding:0 .3em .08em}
+.frac .d{padding:.08em .3em 0}
+
+/* Azpitituluak eta kontrolak */
+.cap{font-size:clamp(17px,2.3vw,22px);line-height:1.5;min-height:3.2em;padding:2px 4px;transition:opacity .25s ease}
+.cap.out{opacity:0}
+input[type=range]{width:100%;accent-color:var(--ink);height:28px;margin:0;cursor:pointer}
+.chap{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.chb{position:relative;flex:1 0 118px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px 12px;font-size:14px;text-align:left;cursor:pointer;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chb[aria-current="true"]{border-color:var(--ink);color:var(--ink);font-weight:700}
+.chb i{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--ink)}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:120px;padding:0 16px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);border-radius:8px;cursor:pointer;font-weight:700}
+.btn svg{width:18px;height:18px;fill:currentColor}
+.btn.alt{background:var(--panel);color:var(--ink);border-color:var(--line);min-width:0;font-weight:400}
+.tm{font-variant-numeric:tabular-nums;color:var(--muted);font-size:15px}
+.spd{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.spd select{min-height:44px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:0 10px}
+@media (max-width:520px){.spd{margin-left:0}}
+</style>
+</head>
+<body>
+
+
+<div class="app">
+  <div class="wrap" id="wrap"><div id="st"><svg id="sv" viewBox="0 0 1000 600"></svg></div></div>
+  <div class="cap" id="cap" aria-live="off"></div>
+  <input type="range" id="seek" min="0" max="100" step="0.05" value="0" aria-label="Denbora">
+  <div class="chap" id="chap"></div>
+  <div class="ctl">
+    <button class="btn" id="bPlay" type="button"><svg viewBox="0 0 24 24" id="ico"><path d="M7 4v16l13-8z"/></svg><span id="lbl">Hasi</span></button>
+    <button class="btn alt" id="bBack" type="button">− 5 s</button>
+    <button class="btn alt" id="bFwd" type="button">+ 5 s</button>
+    <span class="tm" id="tm">0:00 / 0:00</span>
+    <label class="spd">Abiadura
+      <select id="speed"><option value="0.7">Motela</option><option value="1" selected>Normala</option><option value="1.5">Azkarra</option></select>
+    </label>
+  </div>
+</div>
+<script>
+/* ---------- Motorra ---------- */
+const $=id=>document.getElementById(id);
+const stg=$('st'),svg=$('sv'),wrap=$('wrap'),capEl=$('cap');
+let SC=1;
+const OB=[],CUES=[],CH=[];
+let T0=0,TOTAL=1;
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const fmt=(n,d)=>n.toFixed(d).replace('.',',').replace('-','−');
+const EZ={io:x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2,o:x=>1-Math.pow(1-x,3),l:x=>x};
+
+class O{
+  constructor(el,isSvg){this.el=el;this.tr={};this.ini={o:0,x:0,y:0,sx:1,sy:1,d:0};this.fx=null;this.dx=null;this.txt=null;this.svg=!!isSvg;this._z=0;OB.push(this);}
+  last(p){const a=this.tr[p];return a?a[a.length-1].v1:this.ini[p];}
+  to(p,t0,t1,v,e){const v0=this.last(p);(this.tr[p]||(this.tr[p]=[])).push({t0,t1,v0,v1:v,e:EZ[e||'io']});return this;}
+  val(p,t){
+    const a=this.tr[p];if(!a)return this.ini[p];
+    let v=a[0].v0;
+    for(const s of a){
+      if(t>=s.t1)v=s.v1;
+      else{if(t>=s.t0)v=s.v0+(s.v1-s.v0)*s.e((t-s.t0)/(s.t1-s.t0));break;}
+    }
+    return v;
+  }
+  apply(t){
+    const s=this.el.style,o=this.val('o',t);
+    if(this.txt){const q=this.txt(t);if(q!==this._q){this.el.textContent=q;this._q=q;}}
+    if(o<=0.002){if(!this._z){s.opacity=0;this._z=1;}return;}
+    this._z=0;
+    if(this.svg){s.opacity=o;s.strokeDashoffset=this.len*(1-this.val('d',t));return;}
+    let x=this.val('x',t),y=this.val('y',t),sx=this.val('sx',t),sy=this.val('sy',t);
+    if(this.dx)x+=this.dx(t);
+    if(this.fx)sx*=this.fx(t);
+    s.opacity=o;s.transform=`translate(${x}px,${y}px) scale(${sx},${sy})`;
+  }
+}
+
+function mk(cls,html,x,y,w){
+  const e=document.createElement('div');
+  e.className='a '+(cls||'');e.style.left=x+'px';e.style.top=y+'px';
+  if(w!=null)e.style.width=w+'px';
+  if(html!=null)e.innerHTML=html;
+  stg.appendChild(e);return new O(e);
+}
+const T=(x,y,html,cls,w)=>mk(cls,html,x,y,w);
+const C=(cx,y,w,html,cls)=>mk((cls||'')+' ctr',html,cx-w/2,y,w);
+function R(x,y,w,h,cls){const o=mk('rect '+(cls||''),'',x,y,w);o.el.style.height=h+'px';return o;}
+function DOT(cx,cy,d,cls){const o=mk('dot '+(cls||''),'',cx-d/2,cy-d/2,d);o.el.style.height=d+'px';return o;}
+function LN(x1,y1,x2,y2){
+  const e=document.createElementNS('http://www.w3.org/2000/svg','line');
+  e.setAttribute('x1',x1);e.setAttribute('y1',y1);e.setAttribute('x2',x2);e.setAttribute('y2',y2);
+  e.setAttribute('class','ln');
+  const L=Math.hypot(x2-x1,y2-y1);e.style.strokeDasharray=L;e.style.strokeDashoffset=L;e.style.opacity=0;
+  svg.appendChild(e);const o=new O(e,true);o.len=L;return o;
+}
+function spans(o,init){
+  return [...o.el.querySelectorAll('.sp')].map(e=>{const p=new O(e);p.ini.o=init===undefined?0:init;return p;});
+}
+function origin(o,v){o.el.style.transformOrigin=v;return o;}
+
+function show(o,t,d,dy){
+  d=d===undefined?1.2:d;dy=dy===undefined?10:dy;
+  if(dy&&!o.tr.y){o.ini.y=dy;o.to('y',t,t+d,0,'o');}
+  o.to('o',t,t+d,1,'o');return o;
+}
+function hide(o,t,d){o.to('o',t,t+(d===undefined?1:d),0,'l');return o;}
+function grow(o,t,d,ax){ax=ax||'sx';o.ini[ax]=0;o.to(ax,t,t+d,1,'io');o.to('o',t,t+.25,1,'l');return o;}
+function pop(o,t,d){d=d||.9;o.ini.sx=0;o.ini.sy=0;o.to('sx',t,t+d,1,'o').to('sy',t,t+d,1,'o').to('o',t,t+.3,1,'l');return o;}
+function draw(l,t,d){l.to('d',t,t+d,1,'io').to('o',t,t+.25,1,'l');return l;}
+
+function rc(o){
+  const r=o.el.getBoundingClientRect(),s=stg.getBoundingClientRect();
+  return{x:(r.left-s.left)/SC,y:(r.top-s.top)/SC,w:r.width/SC,h:r.height/SC};
+}
+/* Balio bat iturburutik helburura hegan doa (klona), eta helburua agertzen da */
+function fly(src,dst,t0,d,dy){
+  const a=rc(src),b=rc(dst);a.y+=(dy||0);
+  const cs=getComputedStyle(src.el),cd=getComputedStyle(dst.el);
+  const cl=src.el.cloneNode(true);
+  cl.className='a';
+  cl.style.cssText=`left:${a.x}px;top:${a.y}px;font-size:${cs.fontSize};font-family:${cs.fontFamily};font-weight:${cs.fontWeight};font-style:${cs.fontStyle};color:${cd.color};background:var(--panel);padding:0 .2em;border-radius:6px;transform-origin:center`;
+  stg.appendChild(cl);
+  const o=new O(cl);
+  const k=(parseFloat(cd.fontSize)||1)/(parseFloat(cs.fontSize)||1);
+  const dx=(b.x+b.w/2)-(a.x+a.w/2),dyy=(b.y+b.h/2)-(a.y+a.h/2);
+  o.to('o',t0,t0+.5,1,'l').to('x',t0,t0+d,dx).to('y',t0,t0+d,dyy).to('sx',t0,t0+d,k).to('sy',t0,t0+d,k).to('o',t0+d,t0+d+.5,0,'l');
+  dst.to('o',t0+d-.15,t0+d+.4,1,'l');
+  return o;
+}
+
+function cue(a,b,text){CUES.push({a,b,text});}
+function ttl(a,b,text){const o=T(40,20,text,'ttl');show(o,a,1,0);return o;}
+function scene(name,dur,fn,last){
+  const t0=T0,m=OB.length;
+  fn(x=>t0+x,dur);
+  if(!last)OB.slice(m).forEach(o=>{if(!o.el.classList.contains('sp'))o.to('o',t0+dur-2,t0+dur,0,'l');});
+  if(name)CH.push({name,t0,t1:t0+dur});
+  T0+=dur;
+}
+
+/* ---------- Erreprodukzioa eta kontrolak ---------- */
+let t=0,playing=false,speed=1,lastTs=0,dirty=true,capTxt=null,capTok=0;
+const fm=s=>{s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+function setCap(s){
+  if(s===capTxt)return;capTxt=s;const tok=++capTok;
+  capEl.classList.add('out');
+  setTimeout(()=>{if(tok===capTok){capEl.textContent=s;capEl.classList.remove('out');}},220);
+}
+function render(){
+  for(const o of OB)o.apply(t);
+  const c=CUES.find(c=>t>=c.a&&t<c.b);setCap(c?c.text:'');
+  $('seek').value=t;$('tm').textContent=fm(t)+' / '+fm(TOTAL);
+  [...$('chap').children].forEach((b,i)=>{
+    const h=CH[i],cur=t>=h.t0&&t<h.t1;
+    b.setAttribute('aria-current',cur?'true':'false');
+    b.lastElementChild.style.width=(clamp((t-h.t0)/(h.t1-h.t0),0,1)*100)+'%';
+  });
+}
+function syncPlay(){
+  $('lbl').textContent=playing?'Gelditu':(t>=TOTAL-0.05?'Berriro':'Hasi');
+  $('ico').innerHTML=playing?'<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>':'<path d="M7 4v16l13-8z"/>';
+}
+function toggle(){
+  if(playing)playing=false;
+  else{if(t>=TOTAL-0.05)t=0;playing=true;}
+  syncPlay();dirty=true;
+}
+function seek(v){t=clamp(v,0,TOTAL);dirty=true;syncPlay();}
+function tick(ts){
+  const dt=Math.min(.1,(ts-lastTs)/1000);lastTs=ts;
+  if(playing){t+=dt*speed;if(t>=TOTAL){t=TOTAL;playing=false;syncPlay();}dirty=true;}
+  if(dirty){render();dirty=false;}
+  requestAnimationFrame(tick);
+}
+function fit(){SC=(wrap.clientWidth/1000)||1;stg.style.transform='scale('+SC+')';}
+function loadFonts(){
+  if(!document.fonts||!document.fonts.load)return Promise.resolve();
+  const f=['400 40px "Source Serif 4"','italic 400 40px "Source Serif 4"','600 40px "Source Serif 4"','400 20px "Atkinson Hyperlegible"','700 20px "Atkinson Hyperlegible"'];
+  return Promise.race([Promise.all(f.map(x=>document.fonts.load(x))),new Promise(r=>setTimeout(r,3000))]).catch(()=>{});
+}
+async function init(){
+  fit();
+  if(window.ResizeObserver)new ResizeObserver(()=>{fit();dirty=true;}).observe(wrap);
+  await loadFonts();
+  buildAll();
+  TOTAL=T0;
+  $('seek').max=TOTAL;
+  CH.forEach((h,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='chb';
+    b.style.flexGrow=h.t1-h.t0;b.innerHTML=h.name+'<i></i>';
+    b.addEventListener('click',()=>seek(h.t0));
+    $('chap').appendChild(b);
+  });
+  $('seek').addEventListener('input',e=>seek(parseFloat(e.target.value)));
+  $('bPlay').addEventListener('click',toggle);
+  $('bBack').addEventListener('click',()=>seek(t-5));
+  $('bFwd').addEventListener('click',()=>seek(t+5));
+  $('speed').addEventListener('change',e=>{speed=parseFloat(e.target.value);});
+  document.addEventListener('keydown',e=>{
+    const tg=e.target.tagName;
+    if(e.key===' '&&tg!=='BUTTON'&&tg!=='SELECT'){e.preventDefault();toggle();}
+    else if(e.key==='ArrowRight'&&tg!=='INPUT'){seek(t+5);}
+    else if(e.key==='ArrowLeft'&&tg!=='INPUT'){seek(t-5);}
+  });
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  playing=!reduce;syncPlay();dirty=true;
+  requestAnimationFrame(ts=>{lastTs=ts;tick(ts);});
+}
+/* ---------- Eszenak ---------- */
+const Vr='<i class="c-real">V<sub>erreala</sub></i>';
+const Vh='<i class="c-approx">V<sub>hurbilketa</sub></i>';
+const Ea='<i class="c-abs">E<sub>a</sub></i>';
+const Ee='<i class="c-rel">E<sub>e</sub></i>';
+const frac=(n,d)=>`<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+const abs=x=>`<span class="abs">${x}</span>`;
+const sh=(p,t,d)=>p.to('o',t,t+(d||.9),1,'l');
+
+function buildAll(){
+  /* --- Sarrera --- */
+  scene(null,5.5,L=>{
+    show(C(500,215,960,'Hurbilketa-erroreak','big'),.3,1.2);
+    show(C(500,300,960,'Errore absolutua eta errore erlatiboa','sub'),1.3,1.2);
+  });
+
+  /* --- 1. Hurbilketa --- */
+  scene('Hurbilketa',50,L=>{
+    ttl(L(0),0,'1 · Hurbilketa');
+    const lab1=C(500,66,600,'BALIO ERREALA','lab c-real'); show(lab1,L(1.5),1);
+    const l1=C(500,90,1000,'<span class="sp c-real">√5</span> = <span class="sp c-real">2,236</span><span class="sp">067977…</span>','math fz64'); show(l1,L(2),1.2);
+    const [s1a,s1b,s1c]=spans(l1,1);
+    s1c.to('o',L(9.5),L(11.5),.25);
+    const tb=rc(s1c);
+    const br=R(tb.x,tb.y+tb.h+2,tb.w,3,'bg-muted'); show(br,L(10.5),1,0);
+    const brl=C(tb.x+tb.w/2,tb.y+tb.h+10,300,'baztertzen ditugu','note'); show(brl,L(11),1);
+    const lab2=C(500,238,600,'HURBILKETA','lab c-approx'); show(lab2,L(12.5),1);
+    const l2=C(500,260,1000,'<span class="sp c-approx">2,236</span>','math fz64'); l2.to('o',L(12.4),L(12.6),1,'l');
+    const [s2]=spans(l2,0);
+    fly(s1b,s2,L(12.5),3);
+    [l1,l2,lab1,lab2,br,brl].forEach(o=>hide(o,L(18),1.4));
+
+    /* zenbaki-zuzen zabala */
+    const wlB=C(382.4,190,140,'<span class="sp">√5</span>','axl c-real'); wlB.to('o',L(17.9),L(18.1),1,'l');
+    const wlO=C(382.4,296,140,'<span class="sp">2,236</span>','axl c-approx'); wlO.to('o',L(17.9),L(18.1),1,'l');
+    fly(s1a,spans(wlB,0)[0],L(18),2.6);
+    fly(s2,spans(wlO,0)[0],L(18.5),2.6);
+    const ax=R(80,250,840,3,'bg-muted'); grow(ax,L(19),2.5);
+    for(let i=0;i<=5;i++){
+      const x=80+i*168;
+      show(R(x-1,244,2,14,'bg-muted'),L(20.2+i*.2),.8,0);
+      show(C(x,264,90,fmt(2.2+0.02*i,2),'tk'),L(20.2+i*.2),.8,0);
+    }
+    const dO=DOT(382.4,251.5,26,'bg-approx'),dB=DOT(382.46,251.5,12,'bg-real');
+    pop(dO,L(21.2));pop(dB,L(21.8));
+    const win=R(367,214,32,72,'win'); show(win,L(27),1.2,0);
+
+    /* handitzea */
+    draw(LN(371,286,60,382),L(29),2.5); draw(LN(395,286,940,382),L(29),2.5);
+    show(R(60,382,880,150,'panel'),L(30),1.5,0);
+    show(T(76,388,'handitzea ×1 000','tk'),L(31),1,0);
+    grow(R(110,460,780,3,'bg-muted'),L(31),2.5);
+    [[110,'2,23600'],[500,'2,23605'],[890,'2,23610']].forEach(([x,s],i)=>{
+      show(R(x-1,454,2,14,'bg-muted'),L(32.5+i*.3),.8,0);
+      show(C(x,472,110,s,'tk'),L(32.5+i*.3),.8,0);
+    });
+    const zs=R(110,458.5,530.2,6,'bg-abs'); grow(zs,L(35.5),2.5);
+    pop(DOT(110,461.5,22,'bg-approx'),L(33.5));
+    pop(DOT(640.2,461.5,22,'bg-real'),L(34.2));
+    show(C(110,420,140,'2,236','axl c-approx'),L(33.5),1);
+    show(C(640.2,420,140,'√5','axl c-real'),L(34.2),1);
+    show(C(375,494,520,'<span class="c-abs">Errorea</span> = 0,000067977…','math fz28'),L(38),1.2);
+
+    show(C(330,546,300,'<span class="chip k-abs"><b>Errore absolutua</b></span>'),L(42.5),1);
+    show(C(670,546,300,'<span class="chip k-rel"><b>Errore erlatiboa</b></span>'),L(43.5),1);
+
+    cue(L(1.5),L(9.5),'Zenbaki batzuek hamartar amaigabeak dituzte. Adibidez, √5 = 2,236067977… Hori da balio erreala.');
+    cue(L(9.5),L(18),'Kalkuluak egiteko, zifra batzuk baino ez ditugu erabiltzen: 2,236. Hori da hurbilketa.');
+    cue(L(18),L(27),'Zenbaki-zuzenean, √5 eta 2,236 ia toki berean daude.');
+    cue(L(27),L(34),'Handitzen badugu, bien arteko aldea ikusten da.');
+    cue(L(34),L(42),'Balio errealaren eta hurbilketaren arteko aldea errorea da. Hemen hurbilketa balio erreala baino txikiagoa da: gutxiagozko hurbilketa.');
+    cue(L(42),L(48),'Errorea bi eratara neurtzen da: errore absolutuaren bidez eta errore erlatiboaren bidez.');
+  });
+
+  /* --- 2. Errore absolutua --- */
+  scene('Errore absolutua',82,L=>{
+    ttl(L(0),0,'2 · Errore absolutua');
+    const P=v=>80+(v-3.4)/0.4*840;
+    const f=C(500,64,1000,`<span class="sp c-abs">E<sub>a</sub></span> <span class="sp">=</span> <span class="sp abs"><span class="sp c-real">V<sub>erreala</sub></span> <span class="sp">−</span> <span class="sp c-approx">V<sub>hurbilketa</sub></span></span>`,'math fz38');
+    f.to('o',L(1),L(1.2),1,'l');
+    const fs=spans(f,0);
+    [1.5,3,4.5,5.5,7,7.6].forEach((x,i)=>sh(fs[i],L(x),1));
+
+    grow(R(80,308,840,4,'bg-muted'),L(10),2.5);
+    for(let i=0;i<=8;i++){
+      const v=3.4+i*.05,x=P(v),big=i%2===0;
+      show(R(x-1,big?300:304,2,big?20:12,'bg-muted'),L(11+i*.15),.8,0);
+      if(big)show(C(x,322,90,fmt(v,1),'tk'),L(11+i*.15),.8,0);
+    }
+    const band=R(P(3.49),274,P(3.69)-P(3.49),72,'band'); show(band,L(60),1.5,0);
+    const dR=DOT(P(3.59),310,22,'bg-real'),dA=DOT(P(3.5),310,22,'bg-approx');
+    const seg1=origin(R(P(3.5),306,P(3.59)-P(3.5),8,'bg-abs'),'right center');
+    seg1.ini.sx=0; seg1.to('sx',L(18),L(21),1).to('o',L(18),L(18.3),1,'l');
+    seg1.fx=t=>clamp((P(3.59)-(P(3.5)+dA.val('x',t)))/(P(3.59)-P(3.5)),0,1);
+    const seg2=origin(R(P(3.59),306,P(3.7)-P(3.59),8,'bg-abs'),'left center');
+    seg2.to('o',L(39.9),L(40.1),1,'l');
+    seg2.fx=t=>clamp((P(3.5)+dA.val('x',t)-P(3.59))/(P(3.7)-P(3.59)),0,1);
+    /* segmentuak puntuen azpian egon daitezen, puntuak berriro gehitu gabe ordena DOMean */
+    stg.appendChild(dR.el);stg.appendChild(dA.el);
+    pop(dR,L(13));pop(dA,L(15));
+    const mv=P(3.7)-P(3.5);
+    dA.to('x',L(40),L(44),mv).to('x',L(63),L(66.5),0).to('x',L(72),L(76),mv);
+    const rk=DOT(P(3.5),310,40,'ring'),rb=DOT(P(3.5),310,40,'ring bad');
+    rk.dx=t=>dA.val('x',t); rb.dx=t=>dA.val('x',t);
+    show(rk,L(66.5),1,0); hide(rk,L(71.2),.8);
+    show(rb,L(76.3),1,0);
+
+    const lR=C(P(3.59),230,320,'<span class="sp">V erreala = </span><span class="sp">3,59</span>','axl c-real'); show(lR,L(13.3),1);
+    const lA=C(P(3.5),362,320,'<span class="sp">V hurbilketa = </span><span class="sp">3,5</span>','axl c-approx');
+    show(lA,L(15.3),1); hide(lA,L(37.5),1); show(lA,L(66.8),1); hide(lA,L(71.5),.8);
+    const lB=C(P(3.7),362,320,'V hurbilketa = 3,7','axl c-approx');
+    show(lB,L(44.3),1); hide(lB,L(62.3),.8); show(lB,L(76.3),1);
+    const sl1=C((P(3.5)+P(3.59))/2,404,300,'distantzia = <b>0,09</b>','math fz28 c-abs'); show(sl1,L(20.5),1); hide(sl1,L(37.3),.8);
+    const sl2=C((P(3.59)+P(3.7))/2,404,300,'distantzia = <b>0,11</b>','math fz28 c-abs'); show(sl2,L(45),1); hide(sl2,L(58),.8);
+    show(T(P(3.69)+12,262,'errore-borna: 0,1','axl c-ok'),L(62),1);
+
+    /* kalkuluak */
+    const calcA=C(500,452,1000,'<span class="sp c-real">3,59</span> <span class="sp">−</span> <span class="sp c-approx">3,5</span> <span class="sp">=</span> <span class="sp c-abs">0,09</span>','math fz44');
+    calcA.to('o',L(27.5),L(27.7),1,'l');
+    const ca=spans(calcA,0);
+    fly(spans(lR,1)[1],ca[0],L(28),3);
+    fly(spans(lA,1)[1],ca[2],L(28.5),3);
+    sh(ca[1],L(31.5)); sh(ca[3],L(32.2)); pop(ca[4],L(33)); hide(calcA,L(37),1);
+
+    const calcB=C(500,452,1000,'<span class="sp c-real">3,59</span> − <span class="sp c-approx">3,7</span> = <span class="sp c-bad">−0,11</span>','math fz44');
+    show(calcB,L(46),1.2); hide(calcB,L(50.5),.8);
+
+    const calcC=C(500,452,1000,`<span class="sp">${abs('<span class="c-real">3,59</span> − <span class="c-approx">3,7</span>')}</span><span class="sp"> = ${abs('<span class="c-bad">−0,11</span>')}</span><span class="sp c-abs"> = <b>0,11</b></span>`,'math fz44');
+    calcC.to('o',L(51),L(51.2),1,'l'); const cc=spans(calcC,0);
+    sh(cc[0],L(51),1);sh(cc[1],L(53.5),1);sh(cc[2],L(56),1); hide(calcC,L(59),.8);
+
+    const calcD=C(500,452,1000,`${abs('3,59 − 3,5')} = <b class="c-abs">0,09</b> ≤ 0,1`,'math fz44');
+    show(calcD,L(67.7),1); hide(calcD,L(71.2),.8);
+    show(C(P(3.5),404,300,'ontzat','axl c-ok'),L(67.2),1);
+    const vOk=OB[OB.length-1]; hide(vOk,L(71.2),.8);
+    const calcE=C(500,452,1000,`${abs('3,59 − 3,7')} = <b class="c-abs">0,11</b> &gt; 0,1`,'math fz44'); show(calcE,L(77),1);
+    show(C(P(3.7),404,300,'ez da onartzen','axl c-bad'),L(77),1);
+
+    cue(L(1),L(10),'Errore absolutua balio errealaren eta hurbilketaren arteko kenduraren balio absolutua da.');
+    cue(L(10),L(18),'Ikus dezagun zenbaki-zuzenean: balio erreala 3,59 da eta hurbilketa 3,5.');
+    cue(L(18),L(27),'Bi puntuen arteko distantzia errore absolutua da.');
+    cue(L(27),L(37),'Kalkulatzeko, balio errealari hurbilketa kentzen diogu: 3,59 − 3,5 = 0,09.');
+    cue(L(37),L(46),'Hurbilketa 3,7 bada, aldea 0,11 da.');
+    cue(L(46),L(51),'Kendura negatiboa da, baina distantziak ezin du negatiboa izan.');
+    cue(L(51),L(60),'Balio absolutuak zeinua kentzen du: errore absolutua beti positiboa da, 0,11.');
+    cue(L(60),L(71),'Batzuetan errore-borne bat onartzen da. Errore-borna 0,1 bada, tarte horretako hurbilketak ontzat ematen dira.');
+    cue(L(71),L(80),'3,7 tartetik kanpo dago: errorea 0,11 da, errore-borna baino handiagoa.');
+  });
+
+  /* --- 3. Errore erlatiboa --- */
+  scene('Errore erlatiboa',48,L=>{
+    ttl(L(0),0,'3 · Errore erlatiboa');
+    const f=C(500,64,1000,`<span class="sp c-rel">E<sub>e</sub></span> <span class="sp">=</span> <span class="sp">${abs(frac(Ea,Vr))}</span> <span class="sp">= ${frac(abs(Vr+' − '+Vh),abs(Vr))}</span>`,'math fz38');
+    f.to('o',L(1),L(1.2),1,'l'); const fs=spans(f,0);
+    sh(fs[0],L(1.5),1);sh(fs[1],L(2.5),1);sh(fs[2],L(3.5),1.2);sh(fs[3],L(12.5),1.4);
+
+    show(T(100,196,'adibidea','note'),L(20),1,0);
+    grow(R(100,240,800,50,'bg-real'),L(20),3);
+    show(T(116,252,'V erreala (osoa)','barl'),L(23),1,0);
+    const sl=origin(R(804,240,96,50,'bg-abs'),'right center'); grow(sl,L(24),1.8);
+    show(C(852,200,100,'E<sub>a</sub>','math fz28 c-abs'),L(25.5),1);
+
+    grow(R(100,378,800,3,'bg-muted'),L(28),2);
+    for(let i=0;i<=10;i++){
+      show(R(100+80*i-1,372,2,16,'bg-muted'),L(28.5+i*.08),.8,0);
+      if(i%5===0)show(C(100+80*i,392,90,(i*10)+' %','tk'),L(28.5+i*.08),.8,0);
+    }
+    const cp=R(804,240,96,50,'bg-abs');
+    cp.to('o',L(30),L(30.4),1,'l').to('x',L(30.6),L(35),-704).to('y',L(30.6),L(35),78);
+    show(C(500,424,1000,`${frac(Ea,Vr)} = <b class="c-rel">0,12</b>`,'math fz34'),L(35.5),1.2);
+    const r2=C(500,494,1000,'<span class="sp">0,12 × 100 = </span><span class="sp c-rel"><b>% 12</b></span>','math fz34');
+    r2.to('o',L(38),L(38.2),1,'l'); const rs=spans(r2,0); sh(rs[0],L(38.5),1); pop(rs[1],L(41.5));
+
+    cue(L(1),L(11),'Errore erlatiboa errore absolutuaren eta balio errealaren arteko zatiduraren balio absolutua da.');
+    cue(L(11),L(19),'Errore absolutua ordezkatuz, bigarren adierazpena lortzen da.');
+    cue(L(20),L(29),'Barra osoa balio erreala da. Zati txiki bat errorea da.');
+    cue(L(29),L(38),'Zatidurak errorea balio errealaren zer zati den esaten digu: 0,12.');
+    cue(L(38),L(46),'Bider 100 eginda, ehunekotan adierazten da: errore-ehunekoa, % 12.');
+  });
+
+  /* --- 7. adibidea --- */
+  caseScene({tag:'a',statement:'3,5 m luze den listoi bat benetan 3,59 m luze bada ere.',vr:3.59,va:3.5,dec:3,pdec:1,cap0:'Listoi baten luzera 3,5 m dela hartu da, baina benetan 3,59 m da.',cap1:'Bi luzeren arteko aldea errorea da.'});
+  caseScene({tag:'b',statement:'60 m bi zutaberen arteko distantzia, benetan bi zutabeak 59,91 metrora egon arren.',vr:59.91,va:60,dec:4,pdec:2,zoom:[59.8,60],cap0:'Bi zutabeen arteko distantzia 60 m dela hartu da, baina benetan 59,91 m da.',cap1:'Marrazkian ia ez da ikusten; handitzean, aldea agertzen da.'});
+
+  /* --- Konparaketa --- */
+  scene('Konparaketa',66,L=>{
+    const title=ttl(L(0),0,'Konparaketa'); const m0=OB.length;
+    const ratio=(0.09/3.59)/(0.09/59.91);
+    [{y:96,tag:'a) Listoia',vr:3.59,pdec:1},{y:236,tag:'b) Zutabeak',vr:59.91,pdec:2}].forEach(r=>{
+      const ee=0.09/r.vr,w=Math.max(ee*840,4);
+      show(T(40,r.y,'<b>'+r.tag+'</b>','rowl'),L(1),1);
+      grow(R(80,r.y+46,840,38,'bg-real'),L(2),3);
+      show(T(94,r.y+53,'Balio erreala = '+fmt(r.vr,2)+' m','barl'),L(5),1,0);
+      grow(R(80,r.y+46,w,38,'bg-abs'),L(10),3);
+      show(T(210,r.y-4,'E<sub>a</sub> <b>0,09 m</b>','chip k-abs'),L(5.5),1);
+      pop(origin(T(440,r.y-4,'E<sub>e</sub> <b>% '+fmt(ee*100,r.pdec)+'</b>','chip k-rel'),'left center'),L(21),1);
+    });
+    const an1=C(500,190,760,'Errore absolutua berdina da: 0,09 m','note'); show(an1,L(6.5),1); hide(an1,L(20),1);
+    show(C(500,190,760,'Errore erlatiboa ≈ '+fmt(ratio,1)+' aldiz handiagoa','axl c-rel'),L(33),1.2);
+    show(T(60,350,'Errore absolutua bera da bi kasuetan, baina errore erlatiboa askoz handiagoa da lehen kasuan, eta, ondorioz, hurbilketa ez da hain zehatza.','concl',880),L(41),1.4);
+    const rows=OB.slice(m0).filter(o=>!o.el.classList.contains('sp'));
+    rows.forEach(o=>hide(o,L(52),1.2));
+    show(T(140,90,`<div class="lab c-abs">ERRORE ABSOLUTUA</div><div class="math fz38">${Ea} = ${abs(Vr+' − '+Vh)}</div><div class="note">Aldea neurtzen du.</div>`,'card2',720),L(53.5),1.4);
+    show(T(140,290,`<div class="lab c-rel">ERRORE ERLATIBOA</div><div class="math fz38">${Ee} = ${abs(frac(Ea,Vr))} = ${frac(abs(Vr+' − '+Vh),abs(Vr))}</div><div class="note">Aldea balio errealaren aldean neurtzen du. Bider 100: errore-ehunekoa.</div>`,'card2',720),L(57.5),1.4);
+
+    cue(L(1),L(10),'Bi kasuetan errore absolutua berdina da: 0,09 m.');
+    cue(L(10),L(21),'Baina errorea balio errealaren aldean neurtu behar da. Barra osoa balio erreala da; markatutako zatia errorea da.');
+    cue(L(21),L(33),'Errore erlatiboa: a) kasuan % 2,5; b) kasuan % 0,15.');
+    cue(L(33),L(41),'Lehen kasuan, errore erlatiboa gutxi gorabehera '+fmt(ratio,1)+' aldiz handiagoa da.');
+    cue(L(41),L(52),'Ondorioa: errore absolutua bera izan arren, a) kasuko hurbilketa ez da hain zehatza.');
+    cue(L(52),L(66),'Laburbilduz: errore absolutuak aldea neurtzen du; errore erlatiboak, aldea balio errealaren aldean zenbat den.');
+  },true);
+}
+
+function caseScene(o){
+  const {tag,statement,vr,va}=o;
+  scene('Adibidea '+tag,60,L=>{
+    const X0=80,W=840,mx=Math.max(vr,va),xr=vr/mx*W,xa=va/mx*W;
+    const ea=Math.abs(vr-va),ee=ea/vr;
+    const sVr=fmt(vr,2),sVa=fmt(va,va%1===0?0:1),sEa=fmt(ea,2),sEe=fmt(ee,o.dec),sEe5=fmt(ee,5),sPct=fmt(ee*100,o.pdec);
+    ttl(L(0),0,'7. adibidea · '+tag+')');
+    const P1=[];const add=x=>{P1.push(x);return x;};
+
+    add(show(T(40,64,'<b>'+tag+')</b> '+statement,'stm',920),L(1),1.5));
+    add(grow(R(X0,130,xr,38,'bg-real'),L(3),3));
+    const tR=add(show(T(X0+14,137,'<span class="sp">V erreala = </span><span class="sp">'+sVr+'</span> m','barl'),L(5.5),1,0));
+    add(grow(R(X0,176,xa,38,'bg-approx'),L(5),3));
+    const tA=add(show(T(X0+14,183,'<span class="sp">V hurbilketa = </span><span class="sp">'+sVa+'</span> m','barl'),L(7.5),1,0));
+    const rsp=spans(tR,1),asp=spans(tA,1);
+
+    /* erregela */
+    const step=mx>10?10:1;
+    add(grow(R(X0,220,W,2,'bg-muted'),L(8),1.5));
+    for(let m=0;m*step<=mx+1e-9;m++){
+      const x=X0+m*step/mx*W;
+      add(show(R(x-1,222,2,10,'bg-muted'),L(9),.8,0));
+      add(show(C(x,234,80,(m*step)+' m','tk'),L(9),.8,0));
+    }
+    /* aldea */
+    const gx=X0+Math.min(xr,xa),gw=Math.max(Math.abs(xr-xa),4);
+    const gap=origin(R(gx,120,gw,100,'bg-abs'),'center center');
+    gap.ini.sy=0;gap.to('sy',L(9.5),L(11.5),1).to('o',L(9.5),L(9.8),1,'l'); add(gap);
+    add(show(C(gx+gw/2,86,140,'E<sub>a</sub>','math fz28 c-abs'),L(11),1));
+
+    if(o.zoom){
+      const [z0,z1]=o.zoom,zs=z1-z0,zx=110,zw=780,wx=gx+gw/2;
+      add(show(R(wx-16,116,32,112,'win'),L(12),1.2,0));
+      add(draw(LN(wx-16,228,60,262),L(13),2.5)); add(draw(LN(wx+16,228,940,262),L(13),2.5));
+      add(show(R(60,262,880,140,'panel'),L(14),1.5,0));
+      const f=Math.round((zw/zs)/(W/mx)/10)*10;
+      add(show(T(76,268,'handitzea ≈ ×'+f,'tk'),L(15),1,0));
+      const zr=(vr-z0)/zs*zw;
+      add(grow(R(zx,300,zr,16,'bg-real'),L(15),1.6));
+      add(grow(R(zx,322,zw,16,'bg-approx'),L(15.5),1.6));
+      add(show(R(zx+zr,294,(va-vr)/zs*zw,50,'bg-abs'),L(17.2),1.2,0));
+      add(show(C(zx+zr+(va-vr)/zs*zw/2,346,300,'E<sub>a</sub> = '+sEa+' m','math fz28 c-abs'),L(18),1));
+      [[zx,fmt(z0,1)],[zx+zw/2,fmt((z0+z1)/2,1)],[zx+zw,fmt(z1,0)]].forEach(([x,s])=>add(show(C(x,380,90,s,'tk'),L(16),1,0)));
+    }
+
+    /* 1. kalkulua: errore absolutua */
+    const c1=add(C(500,430,1000,`<span class="sp c-abs">E<sub>a</sub></span><span class="sp"> = ${abs(Vr+' − '+Vh)} = </span><span class="sp abs"><span class="sp c-real">${sVr}</span> <span class="sp">−</span> <span class="sp c-approx">${sVa}</span></span><span class="sp"> = </span><span class="sp c-abs">${sEa}</span><span class="sp c-abs"> m</span>`,'math fz38'));
+    c1.to('o',L(20),L(20.3),1,'l');
+    const cs=spans(c1,0);
+    sh(cs[0],L(20.5),1);sh(cs[1],L(22),1);sh(cs[2],L(23.5),1);
+    fly(rsp[1],cs[3],L(24),3); fly(asp[1],cs[5],L(24.6),3);
+    sh(cs[4],L(27.8));sh(cs[6],L(28.6));pop(cs[7],L(29.2));sh(cs[8],L(29.4));
+
+    /* fasea 2 sartu aurretik: 1. fasea desagertu, kalkulua gora */
+    P1.forEach(x=>{if(x!==c1)hide(x,L(31.5),1.5);});
+    c1.to('y',L(32),L(35),-365,'io');
+
+    /* 2. fasea: errore erlatiboa */
+    const rB=grow(R(X0,170,W,38,'bg-real'),L(33.5),2.5);
+    const tRB=show(T(X0+14,177,'<span class="sp">V erreala = </span><span class="sp">'+sVr+'</span> m = % 100','barl'),L(36),1,0);
+    const rb=spans(tRB,1);
+    const sw=Math.max(ee*W,4);
+    grow(R(X0,170,sw,38,'bg-abs'),L(36.5),2.2);
+    show(C(X0+sw/2,134,90,'E<sub>a</sub>','math fz28 c-abs'),L(37.5),1);
+
+    const c2=C(500,262,1000,`<span class="sp c-rel">E<sub>e</sub></span><span class="sp"> = ${abs(frac(Ea,Vr))} = </span><span class="sp abs"><span class="frac"><span class="n"><span class="sp c-abs">${sEa}</span></span><span class="d"><span class="sp c-real">${sVr}</span></span></span></span>`,'math fz38');
+    c2.to('o',L(38.5),L(38.8),1,'l');
+    const q=spans(c2,0);
+    sh(q[0],L(39),1);sh(q[1],L(41),1.2);sh(q[2],L(43),1);
+    fly(cs[7],q[3],L(43.8),3,-365);
+    fly(rb[1],q[4],L(44.6),3);
+
+    const c3=C(500,392,1000,`<span class="sp">= </span><span class="sp c-rel">${sEe}</span><span class="sp"> → </span><span class="sp c-rel"><b>% ${sPct}</b></span>`,'math fz44');
+    c3.to('o',L(49),L(49.2),1,'l');
+    const q3=spans(c3,0);
+    const fw=rc(q3[1]).w;q3[1].el.style.width=fw+'px';q3[1].el.style.textAlign='left';
+    const ra=rc(q3[2]);
+    sh(q3[0],L(49),.8);sh(q3[1],L(49.5),.8);
+    q3[1].txt=t=>fmt(ee*EZ.io(clamp((t-L(49.5))/3.5,0,1)),o.dec);
+    sh(q3[2],L(53.5),.8); pop(q3[3],L(54.2));
+    show(T(ra.x+ra.w/2-22,ra.y-6,'× 100','note'),L(53.5),1);
+    show(C(500,472,900,sEa+' : '+sVr+' = '+sEe5+'… ≈ '+sEe,'note'),L(52.5),1);
+    show(T(X0,216,'→ balio errealaren % '+sPct,'note c-rel'),L(55),1);
+
+    cue(L(1),L(9),o.cap0);
+    cue(L(9),L(20),o.cap1);
+    cue(L(20),L(31),'Errore absolutua kalkulatzeko, balio errealari hurbilketa kentzen diogu eta balio absolutua hartzen dugu: '+sEa+' m.');
+    cue(L(31),L(38),'Orain errore erlatiboa: errorea balio errealaren aldean neurtzen dugu.');
+    cue(L(38),L(48),'Errore absolutua balio errealaz zatitzen dugu: '+sEa+' : '+sVr+'.');
+    cue(L(48),L(58),'Emaitza '+sEe5+'… da; biribilduta, '+sEe+'. Bider 100 eginda, errore erlatiboa % '+sPct+' da.');
+  });
+}
+init();
+</script>
+
+</body>
+</html>
